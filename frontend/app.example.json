@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "vapour",
+    "slug": "vapour",
+    "privacy": "public",
+    "sdkVersion": "38.0.0",
+    "platforms": ["ios", "android"],
+    "version": "0.4.0",
+    "orientation": "portrait",
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "icon": "./assets/images/vapor_logo.jpg",
+      "bundleIdentifier": "vapour",
+      "supportsTablet": true,
+      "buildNumber": "17"
+    },
+    "android": {
+      "icon": "./assets/images/vapor_logo.jpg",
+      "package": "vapour",
+      "versionCode": 17
+    },
+    "hooks": {
+      "postPublish": [
+        {
+          "file": "sentry-expo/upload-sourcemaps",
+          "config": {
+            "organization": "vapour",
+            "project": "vapour",
+            "authToken": null
+          }
+        }
+      ]
+    }
+  }
+}

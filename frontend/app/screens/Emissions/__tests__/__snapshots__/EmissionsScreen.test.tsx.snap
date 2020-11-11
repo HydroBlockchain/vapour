@@ -1,0 +1,21 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`EmissionsScreen renders correctly 1`] = `
+Array [
+  <RCTSafeAreaView
+    emulateUnlessSupported={true}
+    style={
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "flex": 1,
+      }
+    }
+  >
+    <EmissionsList
+      emissions={[MockFunction]}
+      monthlyCarbonBudget={[MockFunction]}
+    />
+  </RCTSafeAreaView>,
+  <AddEmissionAndMitigateButtons />,
+]
+`;

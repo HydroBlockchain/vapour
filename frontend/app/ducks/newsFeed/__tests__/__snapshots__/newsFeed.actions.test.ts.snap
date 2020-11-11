@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`newsFeed actions should export expected actions 1`] = `
+Object {
+  "acceptTermsOfUse": [Function],
+  "updateLocation": [Function],
+}
+`;
+
+exports[`userPreferences actions should export expected actions 1`] = `
+Object {
+  "acceptTermsOfUse": [Function],
+  "updateLocation": [Function],
+}
+`;
