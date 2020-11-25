@@ -7,7 +7,7 @@ const S3 = new AWS.S3({
 });
 
 class S3Service {
-    uploadFile(base64, fileExtension) {
+    async uploadFile(base64, fileExtension) {
         const base64Data = new Buffer.from(base64.replace(/^data:image\/\w+;base64,/, ""), 'base64');
         const type = base64.split(';')[0].split('/')[1];
 
@@ -17,13 +17,18 @@ class S3Service {
             Body: base64Data,
             ContentType: "image/" + type,
         }
+        return await this.upload(params);
+    }
 
-        S3.upload(params, (error, data) => {
-            if (error)
-                throw (error)
-            console.log(data)
-            //res.sendSuccess(data, "File uploaded into S3")
-        })
+    upload(params) {
+        return new Promise(function (resolve, reject) {
+            S3.upload(params, (error, data) => {
+                if (error)
+                    reject(error)
+                console.log(data);
+                resolve(data.Location)
+            })
+        });
     }
 }
 

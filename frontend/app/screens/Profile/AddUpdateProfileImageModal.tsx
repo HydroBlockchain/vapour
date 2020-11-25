@@ -3,29 +3,83 @@ import { View, Image, StyleSheet, TouchableOpacity, TouchableHighlight, Touchabl
 import { Text } from '../../components';
 import { Colors } from '../../style';
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from 'expo-image-picker';
+import api from '../../utils/services/ApiServices';
+import { Avatar } from 'react-native-paper';
+
 
 interface IAddUpdateProfileImageModalState {
-
+    profileImageUri: string
+    profileImageBase64: string
 }
 interface IAddUpdateProfileImageModalProps {
     isOpen: boolean
     toggleModal: () => void
+    onDone: () => void
 }
 class AddUpdateProfileImageModal extends Component<IAddUpdateProfileImageModalProps, IAddUpdateProfileImageModalState> {
     constructor(props: IAddUpdateProfileImageModalProps) {
         super(props);
         this.state = {
-
+            profileImageUri: "",
+            profileImageBase64: ""
         }
     }
 
     componentDidMount() { }
-    OnPressGallery = () => { }
 
-    OnPressCamera = () => { }
-    onOkayPress = () => { }
+    takePhoto = async () => {
+        let result: any = await ImagePicker.launchCameraAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.All,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 1,
+            base64: true
+        });
+
+        if (!result.cancelled) {
+            this.setState({ profileImageUri: result.uri })
+            this.setState({ profileImageBase64: "data:image/png;base64," + result.base64 })
+        }
+    }
+    pickImage = async () => {
+        let result: any = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.All,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 0.8,
+            base64: true
+        });
+
+        if (!result.cancelled) {
+            this.setState({ profileImageUri: result.uri })
+            this.setState({ profileImageBase64: "data:image/png;base64," + result.base64 })
+        }
+    };
     onCancelPress = () => {
         this.props.toggleModal();
+    }
+    onSave = async () => {
+        try {
+            (global as any).toggleLoading(true)
+            let param: any = {
+                profileImageBase64: this.state.profileImageBase64
+            }
+            if (param.profileImageBase64)
+                param.fileExtension = this.state.profileImageUri.split('.').pop()
+            let data = await api.saveNameAndImage(param)
+            // console.log(data)
+            if (!data.status)
+                return (global as any).showSnackbar(data.msg, "red");
+            (global as any).showSnackbar(data.msg, "green")
+            this.props.onDone();
+        }
+        catch (ex) {
+            console.log(ex, "Error")
+        }
+        finally {
+            (global as any).toggleLoading(false)
+        }
     }
     render() {
         return (
@@ -45,17 +99,16 @@ class AddUpdateProfileImageModal extends Component<IAddUpdateProfileImageModalPr
                             Your Profile shares with only your contacts
                         </Text.Tertiary>
                         <View style={{ alignItems: 'center' }}>
-                            <FontAwesome
-                                name={"user-circle"}
-                                size={120}
-                                style={{ backgroundColor: Colors.grey10, borderRadius: 70 }}
-                                color={Colors.blue50}
-                            />
+                            {this.state.profileImageUri ?
+                                <Avatar.Image source={{ uri: this.state.profileImageUri }} size={120} style={[{ marginRight: 10 }, styles.boxShadow]} />
+                                :
+                                <Avatar.Icon icon="account" size={120} style={[{ marginRight: 10 }, styles.boxShadow]} />
+                            }
                             <View style={{ flexDirection: 'row' }}>
-                                <TouchableOpacity style={styles.imageIcon} onPress={this.OnPressGallery} >
+                                <TouchableOpacity style={styles.imageIcon} onPress={this.pickImage} >
                                     <Ionicons name={"md-image"} size={20} />
                                 </TouchableOpacity>
-                                <TouchableOpacity style={styles.cameraIcon} onPress={this.OnPressCamera}>
+                                <TouchableOpacity style={styles.cameraIcon} onPress={this.takePhoto}>
                                     <Ionicons name={"md-camera"} size={20} />
                                 </TouchableOpacity>
                             </View>
@@ -64,8 +117,8 @@ class AddUpdateProfileImageModal extends Component<IAddUpdateProfileImageModalPr
                             <TouchableOpacity onPress={this.onCancelPress} >
                                 <Text.Secondary green>Cancel</Text.Secondary>
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={this.onOkayPress} style={{ marginLeft: 10 }}>
-                                <Text.Secondary green>Ok</Text.Secondary>
+                            <TouchableOpacity onPress={this.onSave} style={{ marginLeft: 10 }}>
+                                <Text.Secondary green>Save</Text.Secondary>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -133,6 +186,16 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         padding: 8,
+        shadowOffset: {
+            width: 0,
+            height: 2
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5
+    },
+    boxShadow: {
+        shadowColor: "#000",
         shadowOffset: {
             width: 0,
             height: 2

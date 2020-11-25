@@ -1,5 +1,5 @@
 const express = require('express')
-const account = require('./account')
+const user = require('./user')
 const commonMw = require('../middlewares/commonMW')
 const jwtService = require('../services/jwtService')
 const public = require('./public')
@@ -13,7 +13,8 @@ router.get("/",(req,res)=>{
   return res.send("Router is working.");
 });
 
-router.use("/account",account);
+
+router.use("/user",user);
 router.use("/public",public);
 
 module.exports = router;

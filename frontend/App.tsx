@@ -17,9 +17,12 @@ import { enableScreens } from "react-native-screens";
 import { LocalizationContext } from "./app/utils";
 import * as firebase from 'firebase';
 import LoginScreen from "./app/screens/Login";
+import Loader from "./app/components/Loader";
+import { Provider as PaperProvider, DefaultTheme } from 'react-native-paper';
+import SnackBar from "./app/components/SnackBar";
 // import './global.js';
-import './shim.js'
-import w3s from "./app/utils/services";
+// import './shim.js'
+// import w3s from "./app/utils/services";
 // import * as Crypto from 'expo-crypto';
 
 const supportedLanguages = ["en", "fr", "de", "sv"];
@@ -46,6 +49,16 @@ const firebaseConfig = {
   messagingSenderId: "476420788986",
   appId: "1:476420788986:web:e8c842aa362f5590312f43",
   measurementId: "G-LTKW86V6GE"
+};
+
+const theme = {
+  ...DefaultTheme,
+  roundness: 7,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: '#34846b',
+    accent: '#34846b',
+  },
 };
 
 if (!firebase.apps.length) {
@@ -77,10 +90,11 @@ const App = () => {
   const [splashAnimation, setSplashAnimation] = useState(__DEV__); // to track splashScreen animation
   const [language, setLanguage] = useState(lang);
   const [locale, setLocale] = useState(localeExpo);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     getUserDetail()
-    w3s.initContract();
+    // w3s.initContract();
 
     Promise.all([
       Font.loadAsync({
@@ -121,6 +135,10 @@ const App = () => {
   const screenAnimationComplete = (animation) => {
     setSplashAnimation(animation);
   };
+  const toggleLoading = (isShow) => {
+    setIsLoading(isShow)
+  }
+  (global as any).toggleLoading = toggleLoading
   console.log()
   return (
     <SafeAreaProvider>
@@ -136,7 +154,10 @@ const App = () => {
                 setLanguage: setLanguage,
               }}
             >
-              <AppNavigator />
+              <PaperProvider theme={theme}>
+                <AppNavigator />
+                <SnackBar />
+              </PaperProvider>
             </LocalizationContext.Provider>
           </FormattedProvider>
         </Provider>
@@ -145,6 +166,7 @@ const App = () => {
       ) : (
             <SplashScreen screenAnimationComplete={screenAnimationComplete} />
           )}
+      <Loader isLoading={isLoading} />
     </SafeAreaProvider>
   );
 };

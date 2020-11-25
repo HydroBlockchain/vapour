@@ -4,15 +4,14 @@ const BaseSchema = require('./BaseSchema');
 var UserSchema = new BaseSchema({
 	'username': {
 		type: String,
-		required: true,
-		unique:true
 	},
 	'password': {
 		type: String,
-		required: true
 	},
-	'email' : String,
-	'name' : String
+	name: String,
+	walletAddress: String,
+	privateKey: String,
+	userImage: String,
 });
 
 module.exports = mongoose.model('User', UserSchema);

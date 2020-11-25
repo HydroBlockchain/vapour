@@ -1,35 +1,64 @@
-import React, { Component } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
 
+import React, { Component } from 'react';
+import {
+    StyleSheet,
+    View,
+    Modal,
+    Image,
+    ActivityIndicator
+} from 'react-native';
 
 interface ILoaderProps {
-    isShow: boolean
+    isLoading: boolean
 }
 
-interface ILoaderState { }
+interface ILoaderState {
+
+}
 
 class Loader extends Component<ILoaderProps, ILoaderState> {
+    constructor(props) {
+        super(props);
+        this.state = {
+
+        }
+    }
+
     render() {
-        if (!this.props.isShow)
-            return <View></View>
         return (
-            <View style={[styles.container, styles.horizontal]}>
-                <ActivityIndicator size={50} color="#2960CA" />
-            </View>
-        );
+            <Modal
+                transparent={true}
+                animationType={'none'}
+                visible={this.props.isLoading}
+                onRequestClose={() => { }}>
+                <View style={styles.modalBackground}>
+                    <View style={styles.activityIndicatorWrapper}>
+                        <ActivityIndicator animating={this.props.isLoading} size={50} color="#2960CA" />
+                    </View>
+                </View>
+            </Modal>
+        )
     }
 }
 
 const styles = StyleSheet.create({
-    container: {
+    modalBackground: {
         flex: 1,
-        justifyContent: "center"
+        alignItems: 'center',
+        flexDirection: 'column',
+        justifyContent: 'space-around',
+        backgroundColor: '#rgba(0, 0, 0, 0.5)',
+        zIndex: 1000
     },
-    horizontal: {
-        flexDirection: "row",
-        justifyContent: "space-around",
-        padding: 10
+    activityIndicatorWrapper: {
+        backgroundColor: '#FFFFFF',
+        height: 100,
+        width: 100,
+        borderRadius: 10,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-around'
     }
 });
 
-export default Loader;
+export default Loader

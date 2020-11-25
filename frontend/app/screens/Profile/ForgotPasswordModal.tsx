@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
-import { View, Image, StyleSheet, TouchableOpacity, TouchableHighlight, TouchableNativeFeedback, Modal, TextInput } from 'react-native';
+import { View, Image, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import { Text } from '../../components';
 import { Colors } from '../../style';
-import { FontAwesome, Ionicons } from "@expo/vector-icons";
+import { TextInput } from 'react-native-paper';
+import api from '../../utils/services/ApiServices';
 
 interface IForgotPasswordModalState {
     password: string
@@ -11,6 +12,7 @@ interface IForgotPasswordModalState {
 interface IForgotPasswordModalProps {
     isOpen: boolean
     toggleModal: () => void
+    onDone: () => void
 }
 class ForgotPasswordModal extends Component<IForgotPasswordModalProps, IForgotPasswordModalState> {
     constructor(props: IForgotPasswordModalProps) {
@@ -22,7 +24,27 @@ class ForgotPasswordModal extends Component<IForgotPasswordModalProps, IForgotPa
     }
 
     componentDidMount() { }
-    onSetPassword = () => { }
+    onSetPassword = async () => {
+        try {
+            if (!this.state.password)
+                return (global as any).showSnackbar("Please Enter Password!", "red")
+            else if (this.state.password !== this.state.repeatPassword) {
+                return (global as any).showSnackbar("Both password must be same!", "red")
+            }
+            (global as any).toggleLoading(true);
+            let res = await api.savePassword(this.state.password)
+            if (!res.status)
+                return (global as any).showSnackbar(res.msg, "red");
+            (global as any).showSnackbar(res.msg, "green");
+            this.props.onDone()
+        }
+        catch (ex) {
+            console.log(ex)
+        }
+        finally {
+            (global as any).toggleLoading(false);
+        }
+    }
     onCancelPress = () => {
         this.props.toggleModal();
     }
@@ -46,15 +68,18 @@ class ForgotPasswordModal extends Component<IForgotPasswordModalProps, IForgotPa
                         <View style={{ marginTop: 25 }} >
                             <TextInput
                                 value={this.state.password}
-                                style={styles.usernameInput}
+                                secureTextEntry={true}
+                                mode={"outlined"}
                                 onChangeText={(value) => this.setState({ password: value })}
-                                placeholder={"New Password"}
+                                label={"New Password"}
                             />
                             <TextInput
                                 value={this.state.repeatPassword}
-                                style={[styles.usernameInput, { marginTop: 10 }]}
+                                style={{ marginTop: 10 }}
+                                secureTextEntry={true}
+                                mode={"outlined"}
                                 onChangeText={(value) => this.setState({ repeatPassword: value })}
-                                placeholder={"Repeat New Password"}
+                                label={"Confirm Password"}
                             />
                         </View>
                         <View style={{ alignItems: "flex-end", flexDirection: 'row', justifyContent: 'flex-end', marginTop: 25 }}>

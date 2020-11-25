@@ -1,15 +1,12 @@
 import React from 'react';
-import { View } from "react-native";
 import navigationOptions from "./ProfileScreen.navigationOptions";
-import { Text } from '../../components';
 import MainProfileScreen from './MainProfileScreen';
-
+import MainProfileScreen2 from './MainProfileScreen2';
+import ProfileData from './ProfileData';
 
 const ProfileScreen = () => {
   return (
-    <View>
-      <MainProfileScreen />
-    </View>
+    <ProfileData />
   )
 }
 

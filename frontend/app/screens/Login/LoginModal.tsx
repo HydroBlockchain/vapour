@@ -1,16 +1,28 @@
 import React, { Component } from 'react';
-import { View, Modal, StyleSheet, ImageBackground, Dimensions, TouchableHighlight, TouchableOpacity, TextInput, Switch } from "react-native";
+import { View, Modal, StyleSheet, ImageBackground, Dimensions, TouchableHighlight, TouchableOpacity, TextInput, Switch, AsyncStorage, TouchableHighlightBase } from "react-native";
 import { Text, Button } from '../../components';
 import { Colors } from '../../style';
 import Carousel from 'react-native-snap-carousel';
 import { Ionicons } from '@expo/vector-icons';
+import api from '../../utils/services/ApiServices';
+import Loader from '../../components/Loader';
+import SnackBar from '../../components/SnackBar';
+import * as ImagePicker from 'expo-image-picker';
+import { Avatar } from 'react-native-paper';
+import auth from '../../utils/services/AuthService';
 
 interface ILoginModalState {
     username: string
+    chosenUsername: string
     password: string
     repeatPassword: string
     index: number
     isEncrypt: boolean
+    isUsernameExist: boolean
+    isLoading: boolean
+    profileName: string
+    profileImageUri: string
+    profileImageBase64: string
 }
 
 interface ILoginModalProps {
@@ -33,17 +45,93 @@ class LoginModal extends Component<ILoginModalProps, ILoginModalState> {
         super(props);
         this.state = {
             username: "",
+            chosenUsername: "",
             index: 0,
             isEncrypt: false,
             password: "",
             repeatPassword: "",
+            isUsernameExist: null,
+            profileName: '',
+            isLoading: false,
+            profileImageUri: "",
+            profileImageBase64: "",
+
         }
     }
     carousel: any
 
-    componentDidMount() {
-
+    checkUsernameExist = async (username) => {
+        try {
+            this.setState({ username })
+            // if (username.length > 2) {
+            let res = await api.isUserNameExist(username)
+            console.log(res)
+            if (res.data.isExist) {
+                this.setState({ isUsernameExist: true })
+            }
+            else {
+                this.setState({ isUsernameExist: false })
+            }
+            // }
+        }
+        catch (ex) {
+            this.setState({ isLoading: false })
+            console.log(ex)
+        }
     }
+
+    saveProfile = async () => {
+        try {
+            (global as any).toggleLoading(true)
+            let param: any = {
+                name: this.state.profileName,
+                profileImageBase64: this.state.profileImageBase64
+            }
+            if (param.profileImageBase64)
+                param.fileExtension = this.state.profileImageUri.split('.').pop()
+            let data = await api.saveNameAndImage(param)
+            console.log(data)
+            if (!data.status)
+                return (global as any).showSnackbar(data.msg, "red")
+            this.props.toggleModal();
+            this.props.onProfileComplete()
+        }
+        catch (ex) {
+            console.log(ex, "Error")
+        }
+        finally {
+            (global as any).toggleLoading(false)
+        }
+    }
+    takePhoto = async () => {
+        let result: any = await ImagePicker.launchCameraAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.All,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 1,
+            base64: true
+        });
+
+        if (!result.cancelled) {
+            this.setState({ profileImageUri: result.uri })
+            this.setState({ profileImageBase64: "data:image/png;base64," + result.base64 })
+        }
+    }
+    pickImage = async () => {
+        let result: any = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.All,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 0.8,
+            base64: true
+        });
+
+        if (!result.cancelled) {
+            this.setState({ profileImageUri: result.uri })
+            this.setState({ profileImageBase64: "data:image/png;base64," + result.base64 })
+        }
+    };
+
 
     _renderItem = ({ item }) => {
         return (
@@ -63,11 +151,20 @@ class LoginModal extends Component<ILoginModalProps, ILoginModalState> {
                             </TouchableOpacity>
                         </View>
                         <View style={{ paddingTop: 40, paddingHorizontal: 10 }}>
-                            <TextInput style={styles.usernameInput} placeholder={"Enter Your Username"}></TextInput>
+                            <TextInput
+                                onChangeText={this.checkUsernameExist}
+                                style={styles.usernameInput}
+                                placeholder={"Enter Your Username"}
+                            />
+                            {this.state.isUsernameExist === true &&
+                                <Text.Tertiary style={{ color: Colors.red50, marginTop: 2 }}>
+                                    Username Exist!
+                                </Text.Tertiary>
+                            }
                         </View>
                         <View style={{ paddingTop: 60, paddingHorizontal: 10 }}>
                             <Button.Primary style={styles.chooseButton} fullWidth onPress={this.chooseUsername} textType={"Primary"}>
-                                <Text.Primary white bold>Choose Username</Text.Primary>
+                                <Text.Primary white bold >Choose Username</Text.Primary>
                             </Button.Primary>
                         </View>
                         <View style={{ paddingVertical: 20, paddingHorizontal: 10 }}>
@@ -118,11 +215,13 @@ class LoginModal extends Component<ILoginModalProps, ILoginModalState> {
                                 <TextInput
                                     value={this.state.password}
                                     style={styles.usernameInput}
+                                    secureTextEntry={true}
                                     onChangeText={(value) => this.setState({ password: value })}
                                     placeholder={"New Password"}
                                 />
                                 <TextInput
                                     value={this.state.repeatPassword}
+                                    secureTextEntry={true}
                                     style={[styles.usernameInput, { marginTop: 10 }]}
                                     onChangeText={(value) => this.setState({ repeatPassword: value })}
                                     placeholder={"Repeat New Password"}
@@ -157,32 +256,31 @@ class LoginModal extends Component<ILoginModalProps, ILoginModalState> {
                         </View>
 
                         <View style={{ paddingTop: 10, alignItems: 'center' }}>
-                            <Ionicons
-                                name={"md-person"}
-                                size={50}
-                                style={{ backgroundColor: Colors.grey10, padding: 20, borderRadius: 70 }}
-                                color={Colors.blue50}
-                            />
+                            {this.state.profileImageUri ?
+                                < Avatar.Image style={styles.shadow} size={90} source={{ uri: this.state.profileImageUri }} />
+                                :
+                                < Avatar.Icon icon="account" size={90} style={styles.shadow} />
+                            }
                             <View style={{ flexDirection: 'row' }}>
-                                <TouchableOpacity style={styles.imageIcon} >
+                                <TouchableOpacity onPress={this.pickImage} style={styles.imageIcon} >
                                     <Ionicons name={"md-image"} size={20} />
                                 </TouchableOpacity>
-                                <TouchableOpacity style={styles.cameraIcon} >
+                                <TouchableOpacity onPress={this.takePhoto} style={styles.cameraIcon} >
                                     <Ionicons name={"md-camera"} size={20} />
                                 </TouchableOpacity>
                             </View>
                         </View>
                         <View>
                             <TextInput
-                                value={this.state.repeatPassword}
+                                value={this.state.profileName}
                                 style={[styles.usernameInput, { marginTop: 0 }]}
-                                onChangeText={(value) => this.setState({ repeatPassword: value })}
-                                placeholder={"Repeat New Password"}
+                                onChangeText={(value) => this.setState({ profileName: value })}
+                                placeholder={"Profile Name"}
                             />
                         </View>
 
                         <View style={{ paddingTop: 15, paddingHorizontal: 10 }}>
-                            <Button.Primary style={styles.chooseButton} fullWidth onPress={this.savProfile} textType={"Primary"}>
+                            <Button.Primary style={styles.chooseButton} fullWidth onPress={this.saveProfile} textType={"Primary"}>
                                 <Text.Primary white bold>Save Profile</Text.Primary>
                             </Button.Primary>
                         </View>
@@ -196,23 +294,78 @@ class LoginModal extends Component<ILoginModalProps, ILoginModalState> {
             </View>
         );
     }
-    createAccount = () => {
-        this.carousel.snapToNext()
+
+    createAccount = async () => {
+        if (this.state.isEncrypt) {
+            try {
+                if (!this.state.password && this.state.isEncrypt)
+                    return (global as any).showSnackbar("Please Enter Password!", "red")
+                else if (this.state.isEncrypt && (this.state.password !== this.state.repeatPassword)) {
+                    return (global as any).showSnackbar("Both password must be same!", "red")
+                }
+                (global as any).toggleLoading(true);
+                let res = await api.savePassword(this.state.password)
+                if (!res.status)
+                    return (global as any).showSnackbar(res.msg, "red")
+                this.carousel.snapToNext()
+            }
+            catch (ex) {
+                console.log(ex)
+            }
+            finally {
+                (global as any).toggleLoading(false);
+            }
+
+        }
+        else
+            this.carousel.snapToNext()
     }
-    savProfile = () => {
-        this.props.toggleModal();
-        this.props.onProfileComplete()
-    }
+
     toggleSwitch = () => {
         this.setState({ isEncrypt: !this.state.isEncrypt })
     }
-    chooseUsername = () => {
-
+    chooseUsername = async () => {
+        if (!this.state.username)
+            return (global as any).showSnackbar("Please enter username!", "red")
+        if (!this.state.isUsernameExist) {
+            try {
+                (global as any).toggleLoading(true);
+                let res = await api.register({ username: this.state.username });
+                if (!res.status)
+                    return (global as any).showSnackbar(res.msg, "red")
+                await auth.setToken(res.data.token);
+                await auth.setUserData(res.data.userData);
+                this.carousel.snapToNext()
+            }
+            catch (ex) {
+                console.log(ex);
+            }
+            finally {
+                (global as any).toggleLoading(false);
+            }
+        }
+        else {
+            return (global as any).showSnackbar("Please enter valid username!", "red")
+        }
     }
     onRecommend = () => { }
 
-    skipUsername = () => {
-        this.carousel.snapToNext()
+    skipUsername = async () => {
+        try {
+            (global as any).toggleLoading(true);
+            let res = await api.register({ username: this.state.username });
+            if (!res.status)
+                return (global as any).showSnackbar(res.msg, "red")
+            await auth.setToken(res.data.token);
+            await auth.setUserData(res.data.userData);
+            this.carousel.snapToNext()
+        }
+        catch (ex) {
+            console.log(ex);
+        }
+        finally {
+            (global as any).toggleLoading(false);
+        }
     }
     skipProfile = () => {
         this.props.toggleModal();
@@ -220,6 +373,7 @@ class LoginModal extends Component<ILoginModalProps, ILoginModalState> {
     }
 
     render() {
+        // console.log(this.state)
         return (
             <Modal
                 presentationStyle={"fullScreen"}
@@ -227,6 +381,7 @@ class LoginModal extends Component<ILoginModalProps, ILoginModalState> {
                 visible={this.props.isOpen}
                 onRequestClose={this.props.toggleModal}
             >
+                <SnackBar />
                 <View style={styles.centeredView}>
                     <ImageBackground
                         source={require('../../../assets/images/vapor_logo.jpg')}
@@ -354,6 +509,16 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         padding: 8,
+        shadowOffset: {
+            width: 0,
+            height: 2
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5
+    },
+    shadow: {
+        shadowColor: "#000",
         shadowOffset: {
             width: 0,
             height: 2

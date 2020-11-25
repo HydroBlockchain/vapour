@@ -1,13 +1,18 @@
 import React, { Component } from 'react';
-import { View, Image, StyleSheet, Dimensions, TextInput, TouchableOpacity, TouchableHighlight } from 'react-native';
+import { View, Image, StyleSheet, Dimensions, TextInput, TouchableOpacity, TouchableHighlight, SafeAreaView } from 'react-native';
 import { Text } from '../../components';
 import { Colors } from '../../style';
 import { FontAwesome } from "@expo/vector-icons";
 import AddUpdateProfileImageModal from './AddUpdateProfileImageModal'
 import ForgotPasswordModal from './ForgotPasswordModal';
+import { Card, Button } from 'react-native-paper';
+
 
 interface IMainProfileScreenState {
     profileName: string
+    username: string
+    userImage: string
+    walletAddress: string
     isProfilePictureModalOpen: boolean
     isForgotPasswordModalOpen: boolean
 }
@@ -18,15 +23,26 @@ class MainProfileScreen extends Component<IMainProfileScreenProps, IMainProfileS
     constructor(props: IMainProfileScreenProps) {
         super(props);
         this.state = {
-            profileName: 'Nik Maniya',
+            profileName: '',
+            username: '',
+            userImage: '',
+            walletAddress: '',
             isProfilePictureModalOpen: false,
             isForgotPasswordModalOpen: false,
         }
     }
 
     componentDidMount() {
-
+        let userData = (global as any).userData;
+        console.log(userData)
+        this.setState({
+            profileName: userData.name,
+            username: userData.username,
+            userImage: userData.userImage,
+            walletAddress: userData.walletAddress,
+        })
     }
+
     toggleProfilePictureModal = () => {
         this.setState({ isProfilePictureModalOpen: !this.state.isProfilePictureModalOpen })
     }
@@ -37,99 +53,17 @@ class MainProfileScreen extends Component<IMainProfileScreenProps, IMainProfileS
 
     render() {
         return (
-            <View style={{ flex: 1, padding: 10 }}>
-                <View>
-                    <View style={{ height: 100, alignItems: 'center', flexDirection: 'row', justifyContent: 'center' }}>
-                        <TouchableOpacity onPress={this.toggleProfilePictureModal}>
-                            <FontAwesome
-                                name="user-circle"
-                                size={100}
-                                color={Colors.grey70}
-                            />
-                        </TouchableOpacity>
-                        <View style={styles.profileNameView}>
-                            <View style={{ flex: 8, paddingLeft: 10, flexDirection: 'column', alignItems: 'flex-start', alignSelf: 'center' }}>
-                                <Text.Primary bold style={{ fontSize: 14 }} green>Profile Name</Text.Primary>
-                                <TextInput
-                                    value={this.state.profileName}
-                                    onChangeText={(value) => this.setState({ profileName: value })}
-                                    style={{ fontWeight: 'bold', fontSize: 18, paddingLeft: 4 }}
-                                    placeholder={"Enter Profile Name"}
-                                />
-                            </View>
-                            <View style={{ flex: 4, flexDirection: 'row', alignSelf: 'center', }}>
-                                <FontAwesome
-                                    name="pencil"
-                                    size={28}
-                                    color={Colors.grey70}
-                                />
-                                <FontAwesome
-                                    name="share-alt"
-                                    size={28}
-                                    style={{ paddingLeft: 10 }}
-                                    color={Colors.grey70}
-                                />
-                            </View>
-                        </View>
-                    </View>
-                    <View style={{ paddingTop: 10 }}>
-                        <Text.H1 green>Account</Text.H1>
-                        <View style={styles.usernameView}>
-                            <View style={{ paddingLeft: 10, flexDirection: 'column', alignItems: 'flex-start', alignSelf: 'center' }}>
-                                <Text.Primary bold style={{ fontSize: 14 }} green>Registered Username</Text.Primary>
-                                <TextInput
-                                    value={this.state.profileName}
-                                    onChangeText={(value) => this.setState({ profileName: value })}
-                                    style={{ fontWeight: 'bold', fontSize: 18 }}
-                                    placeholder={"Enter Profile Name"}
-                                />
-                            </View>
-                        </View>
-                        <View style={[styles.usernameView, { marginTop: 25 }]}>
-                            <View style={{ flex: 9, paddingLeft: 10, flexDirection: 'column', alignItems: 'flex-start', alignSelf: 'center' }}>
-                                <Text.Primary bold style={{ fontSize: 14 }} green>Identity</Text.Primary>
-                                <TextInput
-                                    value={this.state.profileName}
-                                    onChangeText={(value) => this.setState({ profileName: value })}
-                                    style={{ fontWeight: 'bold', fontSize: 18 }}
-                                    placeholder={"Enter Profile Name"}
-                                />
-                            </View>
-                            <View style={{ flex: 2, flexDirection: 'row', alignSelf: 'center', justifyContent: 'center' }}>
-                                <FontAwesome
-                                    name="qrcode"
-                                    size={28}
-                                    color={Colors.green50}
-                                />
-                            </View>
-                        </View>
-                        <View style={[{ marginTop: 25, flexDirection: 'row' }]}>
-                            <View style={{ flex: 1 }}>
-                                <View style={{ marginRight: 5 }}>
-                                    <TouchableHighlight onPress={this.toggleForgotPasswordModal}>
-                                        <Text.Primary center green style={styles.backupForgetView}>Backup Account</Text.Primary>
-                                    </TouchableHighlight>
-                                </View>
-                            </View>
-                            <View style={{ flex: 1 }}>
-                                <View style={{ marginLeft: 5 }}>
-                                    <TouchableHighlight onPress={this.toggleForgotPasswordModal}>
-                                        <Text.Primary center green style={styles.backupForgetView}>Forgot Password</Text.Primary>
-                                    </TouchableHighlight>
-                                </View>
-                            </View>
-                        </View>
+            <SafeAreaView>
+                <View style={{ flex: 1, padding: 10 }}>
+                    <View style={{ flexDirection: 'row' }}>
+                        <Card elevation={3} style={{ margin: 10 }}>
+                            <Card.Content>
+                                <Button>Manik</Button>
+                            </Card.Content>
+                        </Card>
                     </View>
                 </View>
-                <ForgotPasswordModal
-                    isOpen={!this.state.isForgotPasswordModalOpen}
-                    toggleModal={this.toggleForgotPasswordModal}
-                />
-                <AddUpdateProfileImageModal
-                    isOpen={this.state.isProfilePictureModalOpen}
-                    toggleModal={this.toggleProfilePictureModal}
-                />
-            </View>
+            </SafeAreaView>
         );
     }
 }
@@ -175,3 +109,100 @@ const styles = StyleSheet.create({
         padding: 15
     }
 });
+
+
+
+// <View>
+//                         <View style={{ height: 100, alignItems: 'center', flexDirection: 'row', justifyContent: 'center' }}>
+//                             <TouchableOpacity onPress={this.toggleProfilePictureModal}>
+//                                 <FontAwesome
+//                                     name="user-circle"
+//                                     size={100}
+//                                     color={Colors.grey70}
+//                                 />
+//                             </TouchableOpacity>
+//                             <View style={styles.profileNameView}>
+//                                 <View style={{ flex: 8, paddingLeft: 10, flexDirection: 'column', alignItems: 'flex-start', alignSelf: 'center' }}>
+//                                     <Text.Primary bold style={{ fontSize: 14 }} green>Profile Name</Text.Primary>
+//                                     <TextInput
+//                                         value={this.state.profileName}
+//                                         onChangeText={(value) => this.setState({ profileName: value })}
+//                                         style={{ fontWeight: 'bold', fontSize: 18, paddingLeft: 4 }}
+//                                         placeholder={"Enter Profile Name"}
+//                                     />
+//                                 </View>
+
+//                                 <View style={{ flex: 4, flexDirection: 'row', alignSelf: 'center', }}>
+//                                     <FontAwesome
+//                                         name="pencil"
+//                                         size={28}
+//                                         color={Colors.grey70}
+//                                     />
+//                                     <FontAwesome
+//                                         name="share-alt"
+//                                         size={28}
+//                                         style={{ paddingLeft: 10 }}
+//                                         color={Colors.grey70}
+//                                     />
+//                                 </View>
+//                             </View>
+//                         </View>
+//                         <View style={{ paddingTop: 10 }}>
+//                             <Text.H1 green>Account</Text.H1>
+//                             <View style={styles.usernameView}>
+//                                 <View style={{ paddingLeft: 10, flexDirection: 'column', alignItems: 'flex-start', alignSelf: 'center' }}>
+//                                     <Text.Primary bold style={{ fontSize: 14 }} green>Registered Username</Text.Primary>
+//                                     <Button mode="outlined">Backup Account</Button>
+//                                     <TextInput
+//                                         value={this.state.profileName}
+//                                         onChangeText={(value) => this.setState({ profileName: value })}
+//                                         style={{ fontWeight: 'bold', fontSize: 18 }}
+//                                         placeholder={"Enter Profile Name"}
+//                                     />
+//                                 </View>
+//                             </View>
+//                             <View style={[styles.usernameView, { marginTop: 25 }]}>
+//                                 <View style={{ flex: 9, paddingLeft: 10, flexDirection: 'column', alignItems: 'flex-start', alignSelf: 'center' }}>
+//                                     <Text.Primary bold style={{ fontSize: 14 }} green>Identity</Text.Primary>
+//                                     <TextInput
+//                                         value={this.state.walletAddress}
+//                                         onChangeText={(value) => this.setState({ walletAddress: value })}
+//                                         style={{ fontWeight: 'bold', fontSize: 18 }}
+//                                         placeholder={"Enter Profile Name"}
+//                                     />
+//                                 </View>
+//                                 <View style={{ flex: 2, flexDirection: 'row', alignSelf: 'center', justifyContent: 'center' }}>
+//                                     <FontAwesome
+//                                         name="qrcode"
+//                                         size={28}
+//                                         color={Colors.green50}
+//                                     />
+//                                 </View>
+//                             </View>
+//                             <View style={[{ marginTop: 25, flexDirection: 'row' }]}>
+//                                 <View style={{ flex: 1 }}>
+//                                     <View style={{ marginRight: 5 }}>
+//                                         {/* <TouchableHighlight onPress={this.toggleForgotPasswordModal}>
+//                                             <Text.Primary center green style={styles.backupForgetView}>Backup Account</Text.Primary>
+//                                         </TouchableHighlight> */}
+//                                     <Button mode="outlined" uppercase={false}>Backup Account</Button>
+//                                     </View>
+//                                 </View>
+//                                 <View style={{ flex: 1 }}>
+//                                     <View style={{ marginLeft: 5 }}>
+//                                         <TouchableHighlight onPress={this.toggleForgotPasswordModal}>
+//                                             <Text.Primary center green style={styles.backupForgetView}>Forgot Password</Text.Primary>
+//                                         </TouchableHighlight>
+//                                     </View>
+//                                 </View>
+//                             </View>
+//                         </View>
+//                     </View>
+//                     <ForgotPasswordModal
+//                         isOpen={this.state.isForgotPasswordModalOpen}
+//                         toggleModal={this.toggleForgotPasswordModal}
+//                     />
+//                     <AddUpdateProfileImageModal
+//                         isOpen={this.state.isProfilePictureModalOpen}
+//                         toggleModal={this.toggleProfilePictureModal}
+//                     />
